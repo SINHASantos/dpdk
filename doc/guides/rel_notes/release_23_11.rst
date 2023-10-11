@@ -20,23 +20,6 @@ DPDK Release 23.11
       ninja -C build doc
       xdg-open build/doc/guides/html/rel_notes/release_23_11.html
 
-* Build Requirements: From DPDK 23.11 onwards,
-  building DPDK will require a C compiler which supports the C11 standard,
-  including support for C11 standard atomics.
-
-  More specifically, the requirements will be:
-
-  * Support for flag "-std=c11" (or similar)
-  * __STDC_NO_ATOMICS__ is *not defined* when using c11 flag
-
-  Please note:
-
-  * C11, including standard atomics, is supported from GCC version 5 onwards,
-    and is the default language version in that release
-    (Ref: https://gcc.gnu.org/gcc-5/changes.html)
-  * C11 is the default compilation mode in Clang from version 3.6,
-    which also added support for standard atomics
-    (Ref: https://releases.llvm.org/3.6.0/tools/clang/docs/ReleaseNotes.html)
 
 New Features
 ------------
@@ -72,6 +55,43 @@ New Features
      Also, make sure to start the actual text at the margin.
      =======================================================
 
+* **Build requirements increased for C11.**
+
+  From DPDK 23.11 onwards,
+  building DPDK will require a C compiler which supports the C11 standard,
+  including support for C11 standard atomics.
+
+  More specifically, the requirements will be:
+
+  * Support for flag "-std=c11" (or similar)
+  * __STDC_NO_ATOMICS__ is *not defined* when using c11 flag
+
+  Please note:
+
+  * C11, including standard atomics, is supported from GCC version 5 onwards,
+    and is the default language version in that release
+    (Ref: https://gcc.gnu.org/gcc-5/changes.html)
+  * C11 is the default compilation mode in Clang from version 3.6,
+    which also added support for standard atomics
+    (Ref: https://releases.llvm.org/3.6.0/tools/clang/docs/ReleaseNotes.html)
+
+* **Added new build options.**
+
+  * Enabling deprecated libraries is now done using
+    the new ``enable_deprecated_libraries`` build option.
+  * Optional libraries can now be selected with the new ``enable_libs``
+    build option similarly to the existing ``enable_drivers`` build option.
+
+* **Introduced a new API for atomic operations.**
+
+  This new API serves as a wrapper for transitioning
+  to standard atomic operations as described in the C11 standard.
+  This API implementation points at the compiler intrinsics by default.
+  The implementation using C11 standard atomic operations is enabled
+  via the ``enable_stdatomic`` build option.
+
+* **Added support for power intrinsics with AMD processors.**
+
 * **Added mbuf recycling support.**
 
   Added ``rte_eth_recycle_rx_queue_info_get`` and ``rte_eth_recycle_mbufs``
@@ -80,21 +100,78 @@ New Features
   device is different from the Tx Ethernet device with respective driver
   callback functions in ``rte_eth_recycle_mbufs``.
 
+* **Added amd-pstate driver support to the power management library.**
+
+  Added support for amd-pstate driver which works on AMD EPYC processors.
+
+* **Added a flow action type for P4-defined actions.**
+
+  For P4-programmable devices, hardware pipeline can be configured through
+  a new "PROG" action type and its associated custom arguments.
+  Such P4 pipeline, not using the standard blocks of the flow API,
+  can be managed with ``RTE_FLOW_ITEM_TYPE_FLEX`` and ``RTE_FLOW_ACTION_TYPE_PROG``.
+
+* **Added flow group set miss actions.**
+
+  Introduced ``rte_flow_group_set_miss_actions()`` API to explicitly set
+  a group's miss actions, which are the actions to be performed on packets
+  that didn't match any of the flow rules in the group.
+
 * **Updated Solarflare net driver.**
 
   * Added support for transfer flow action ``INDIRECT`` with subtype ``VXLAN_ENCAP``.
+  * Supported packet replay (multi-count / multi-delivery) in transfer flows.
 
-* build: Enabling deprecated libraries is now done using the new
-  ``enable_deprecated_libraries`` build option.
+* **Updated Netronome/Corigine nfp driver.**
 
-* build: Optional libraries can now be selected with the new ``enable_libs``
-  build option similarly to the existing ``enable_drivers`` build option.
+  * Added inline IPsec offload based on the security framework.
 
-* eal: Introduced a new API for atomic operations. This new API serves as a
-  wrapper for transitioning to standard atomic operations as described in the
-  C11 standard. This API implementation points at the compiler intrinsics by
-  default. The implementation using C11 standard atomic operations is enabled
-  via the ``enable_stdatomic`` build option.
+* **Updated Wangxun ngbe driver.**
+
+  * Added 100M and auto-neg support in YT PHY fiber mode.
+
+* **Added support for TLS and DTLS record processing.**
+
+  Added TLS and DTLS record transform for security session
+  and added enhancements to ``rte_crypto_op`` fields
+  to handle all datapath requirements of TLS and DTLS.
+  The support was added for TLS 1.2, TLS 1.3 and DTLS 1.2.
+
+* **Added out of place processing support for inline ingress security session.**
+
+  Similar to out of place processing support for lookaside security session,
+  added the same support for inline ingress security session.
+
+* **Added security Rx inject API.**
+
+  Added Rx inject API to allow applications to submit packets
+  for protocol offload and have them injected back to ethdev Rx
+  so that further ethdev Rx actions (IP reassembly, packet parsing and flow lookups)
+  can happen based on inner packet.
+
+  The API when implemented by an ethdev, application would be able to process
+  packets that are received without/failed inline offload processing
+  (such as fragmented ESP packets with inline IPsec offload).
+  The API when implemented by a cryptodev, can be used for injecting packets
+  to ethdev Rx after IPsec processing and take advantage of ethdev Rx actions
+  for the inner packet which cannot be accelerated in inline protocol offload mode.
+
+* **Updated cryptodev scheduler driver.**
+
+  * Added support for DOCSIS security protocol
+    through the ``rte_security`` API callbacks.
+
+* **Updated ipsec_mb crypto driver.**
+
+  * Added support for digest encrypted to AESNI_MB asynchronous crypto driver.
+
+* **Updated Intel QuickAssist Technology driver.**
+
+  * Enabled support for QAT 2.0c (4944) devices in QAT crypto driver.
+
+* **Updated Marvell cnxk crypto driver.**
+
+  * Added SM2 algorithm support in asymmetric crypto operations.
 
 
 Removed Items
@@ -116,6 +193,15 @@ Removed Items
 * flow_classify: Removed flow classification library and examples.
 
 * kni: Removed the Kernel Network Interface (KNI) library and driver.
+
+* cryptodev: Removed the arrays of algorithm strings ``rte_crypto_cipher_algorithm_strings``,
+  ``rte_crypto_auth_algorithm_strings``, ``rte_crypto_aead_algorithm_strings`` and
+  ``rte_crypto_asym_xform_strings``.
+
+* cryptodev: Removed explicit SM2 xform parameter in asymmetric xform.
+
+* security: Removed deprecated field ``reserved_opts``
+  from struct ``rte_security_ipsec_sa_options``.
 
 
 API Changes
@@ -159,6 +245,13 @@ API Changes
   ``rte_eth_bond_member_remove``, and
   ``rte_eth_bond_members_get``.
 
+* cryptodev: The elliptic curve asymmetric private and public keys can be maintained
+  per session. These keys are moved from per packet ``rte_crypto_ecdsa_op_param`` and
+  ``rte_crypto_sm2_op_param`` to generic EC xform ``rte_crypto_ec_xform``.
+
+* security: Structures ``rte_security_ops`` and ``rte_security_ctx`` were moved to
+  internal library headers not visible to application.
+
 
 ABI Changes
 -----------
@@ -182,6 +275,9 @@ ABI Changes
   ``recycle_tx_mbufs_reuse`` and ``recycle_rx_descriptors_refill``
   fields, to move ``rxq`` and ``txq`` fields, to change the size of
   ``reserved1`` and ``reserved2`` fields.
+
+* security: struct ``rte_security_ipsec_sa_options`` was updated
+  due to inline out-of-place feature addition.
 
 
 Known Issues

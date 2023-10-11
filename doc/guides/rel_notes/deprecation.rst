@@ -124,21 +124,6 @@ Deprecation Notices
   which got error interrupt to the application,
   so that application can reset that particular queue pair.
 
-* cryptodev: The arrays of algorithm strings ``rte_crypto_cipher_algorithm_strings``,
-  ``rte_crypto_auth_algorithm_strings``, ``rte_crypto_aead_algorithm_strings`` and
-  ``rte_crypto_asym_xform_strings`` are deprecated and will be removed in DPDK 23.11.
-  Application can use the new APIs ``rte_cryptodev_get_cipher_algo_string``,
-  ``rte_cryptodev_get_auth_algo_string``, ``rte_cryptodev_get_aead_algo_string`` and
-  ``rte_cryptodev_asym_get_xform_string`` respectively.
-
-* security: Hide structures ``rte_security_ops`` and ``rte_security_ctx``
-  as these are internal to DPDK library and drivers.
-
-* security: New SA option ``ingress_oop`` would be added in structure
-  ``rte_security_ipsec_sa_options`` to support out of place processing
-  for inline inbound SA from DPDK 23.11. ``reserved_opts`` field in the
-  same struct would be removed as discussed in techboard meeting.
-
 * eventdev: The single-event (non-burst) enqueue and dequeue operations,
   used by static inline burst enqueue and dequeue functions in ``rte_eventdev.h``,
   will be removed in DPDK 23.11.

@@ -982,6 +982,8 @@ int port_flow_template_table_create(portid_t port_id, uint32_t id,
 int port_flow_template_table_destroy(portid_t port_id,
 			    uint32_t n, const uint32_t *table);
 int port_flow_template_table_flush(portid_t port_id);
+int port_queue_group_set_miss_actions(portid_t port_id, const struct rte_flow_attr *attr,
+				      const struct rte_flow_action *actions);
 int port_queue_flow_create(portid_t port_id, queueid_t queue_id,
 			   bool postpone, uint32_t table_id, uint32_t rule_idx,
 			   uint32_t pattern_idx, uint32_t actions_idx,
@@ -1179,6 +1181,7 @@ void show_mcast_macs(portid_t port_id);
 /* Functions to manage the set of filtered Multicast MAC addresses */
 void mcast_addr_add(portid_t port_id, struct rte_ether_addr *mc_addr);
 void mcast_addr_remove(portid_t port_id, struct rte_ether_addr *mc_addr);
+void mcast_addr_flush(portid_t port_id);
 void port_dcb_info_display(portid_t port_id);
 
 uint8_t *open_file(const char *file_path, uint32_t *size);

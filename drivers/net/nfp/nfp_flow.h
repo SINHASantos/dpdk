@@ -11,6 +11,17 @@
 /* The firmware expects lengths in units of long words */
 #define NFP_FL_LW_SIZ                   2
 
+/*
+ * Maximum number of items in struct rte_flow_action_vxlan_encap.
+ * ETH / IPv4(6) / UDP / VXLAN / END
+ */
+#define ACTION_VXLAN_ENCAP_ITEMS_NUM 5
+
+struct vxlan_data {
+	struct rte_flow_action_vxlan_encap conf;
+	struct rte_flow_item items[ACTION_VXLAN_ENCAP_ITEMS_NUM];
+};
+
 enum nfp_flower_tun_type {
 	NFP_FL_TUN_NONE   = 0,
 	NFP_FL_TUN_GRE    = 1,
@@ -139,6 +150,10 @@ struct nfp_flow_priv {
 	rte_spinlock_t ipv6_off_lock; /**< Lock the ipv6 off list */
 	/* neighbor next */
 	LIST_HEAD(, nfp_fl_tun)nn_list; /**< Store nn entry */
+	/* Conntrack */
+	struct rte_hash *ct_zone_table; /**< Hash table to store ct zone entry */
+	struct nfp_ct_zone_entry *ct_zone_wc; /**< The wildcard ct zone entry */
+	struct rte_hash *ct_map_table; /**< Hash table to store ct map entry */
 };
 
 struct rte_flow {
@@ -150,11 +165,34 @@ struct rte_flow {
 	uint32_t port_id;
 	bool install_flag;
 	bool tcp_flag;    /**< Used in the SET_TP_* action */
+	bool merge_flag;
 	enum nfp_flow_type type;
+	uint16_t ref_cnt;
 };
+
+/* Forward declaration */
+struct nfp_flower_representor;
 
 int nfp_flow_priv_init(struct nfp_pf_dev *pf_dev);
 void nfp_flow_priv_uninit(struct nfp_pf_dev *pf_dev);
 int nfp_net_flow_ops_get(struct rte_eth_dev *dev, const struct rte_flow_ops **ops);
+bool nfp_flow_inner_item_get(const struct rte_flow_item items[],
+		const struct rte_flow_item **inner_item);
+struct rte_flow *nfp_flow_process(struct nfp_flower_representor *representor,
+		const struct rte_flow_item items[],
+		const struct rte_flow_action actions[],
+		bool validate_flag,
+		uint64_t cookie,
+		bool install_flag,
+		bool merge_flag);
+int nfp_flow_table_add_merge(struct nfp_flow_priv *priv,
+		struct rte_flow *nfp_flow);
+int nfp_flow_teardown(struct nfp_flow_priv *priv,
+		struct rte_flow *nfp_flow,
+		bool validate_flag);
+void nfp_flow_free(struct rte_flow *nfp_flow);
+int nfp_flow_destroy(struct rte_eth_dev *dev,
+		struct rte_flow *nfp_flow,
+		struct rte_flow_error *error);
 
 #endif /* _NFP_FLOW_H_ */

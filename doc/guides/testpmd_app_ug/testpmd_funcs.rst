@@ -1323,6 +1323,13 @@ filtered by port::
 
    testpmd> mcast_addr remove (port_id) (mcast_addr)
 
+mcast_addr flush
+~~~~~~~~~~~~~~~~
+
+Flush all multicast MAC addresses on port_id::
+
+   testpmd> mcast_addr flush (port_id)
+
 mac_addr add (for VF)
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -3807,6 +3814,10 @@ This section lists supported pattern items and their attributes, if any.
   - ``tx_queue {value}``: send queue value (starts from 0).
 
 - ``send_to_kernel``: send packets to kernel.
+
+- ``ptype``: match the packet type (L2/L3/L4 and tunnel information).
+
+        - ``packet_type {unsigned}``: packet type.
 
 
 Actions list

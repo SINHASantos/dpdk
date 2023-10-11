@@ -64,6 +64,13 @@ enum nfp_net_meta_format {
 	NFP_NET_METAFORMAT_CHAINED,
 };
 
+/* Parsed control BAR TLV capabilities */
+struct nfp_net_tlv_caps {
+	uint32_t mbox_off;               /**< VNIC mailbox area offset */
+	uint32_t mbox_len;               /**< VNIC mailbox area length */
+	uint32_t mbox_cmsg_types;        /**< Cmsgs which can be passed through the mailbox */
+};
+
 struct nfp_pf_dev {
 	/* Backpointer to associated pci device */
 	struct rte_pci_device *pci_dev;
@@ -163,6 +170,10 @@ struct nfp_net_hw {
 	uint8_t idx;
 	/* Internal port number as seen from NFP */
 	uint8_t nfp_idx;
+
+	struct nfp_net_tlv_caps tlv_caps;
+
+	struct nfp_net_ipsec_data *ipsec_data;
 };
 
 struct nfp_net_adapter {
@@ -322,6 +333,7 @@ nfp_qcp_queue_offset(const struct nfp_dev_info *dev_info,
 /* Prototypes for common NFP functions */
 int nfp_net_reconfig(struct nfp_net_hw *hw, uint32_t ctrl, uint32_t update);
 int nfp_net_ext_reconfig(struct nfp_net_hw *hw, uint32_t ctrl_ext, uint32_t update);
+int nfp_net_mbox_reconfig(struct nfp_net_hw *hw, uint32_t mbox_cmd);
 int nfp_net_configure(struct rte_eth_dev *dev);
 int nfp_net_common_init(struct rte_pci_device *pci_dev, struct nfp_net_hw *hw);
 void nfp_net_log_device_information(const struct nfp_net_hw *hw);

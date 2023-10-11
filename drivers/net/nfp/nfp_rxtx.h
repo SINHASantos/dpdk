@@ -43,6 +43,18 @@ struct nfp_net_dp_buf {
 	struct rte_mbuf *mbuf;
 };
 
+struct nfp_tx_ipsec_desc_msg {
+	uint32_t sa_idx;        /**< SA index in driver table */
+	uint32_t enc;           /**< IPsec enable flag */
+	union {
+		uint64_t value;
+		struct {
+			uint32_t low;
+			uint32_t hi;
+		};
+	} esn;                  /**< Extended Sequence Number */
+};
+
 struct nfp_net_txq {
 	/** Backpointer to nfp_net structure */
 	struct nfp_net_hw *hw;
@@ -245,5 +257,10 @@ int nfp_net_tx_free_bufs(struct nfp_net_txq *txq);
 void nfp_net_set_meta_vlan(struct nfp_net_meta_raw *meta_data,
 		struct rte_mbuf *pkt,
 		uint8_t layer);
+void nfp_net_set_meta_ipsec(struct nfp_net_meta_raw *meta_data,
+		struct nfp_net_txq *txq,
+		struct rte_mbuf *pkt,
+		uint8_t layer,
+		uint8_t ipsec_layer);
 
 #endif /* _NFP_RXTX_H_ */
